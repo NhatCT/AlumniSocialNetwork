@@ -40,7 +40,7 @@ public class ApiUserController {
     private UserService userDetailsService;
 
     @PostMapping(path = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDTO> create(@RequestParam Map<String, String> info, @RequestParam(value = "avatar") MultipartFile avatar) {
+    public ResponseEntity<UserDTO> create(@RequestParam Map<String, String> info, @RequestParam(value = "avatar", required = false) MultipartFile avatar) {
         User u = this.userDetailsService.register(info, avatar);
 
         return new ResponseEntity<>(new UserDTO(u), HttpStatus.CREATED);

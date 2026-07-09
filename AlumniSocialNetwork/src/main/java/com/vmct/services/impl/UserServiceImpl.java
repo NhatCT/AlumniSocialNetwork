@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
         u.setIsLocked(Boolean.TRUE);
         u.setUserRole("ROLE_ALUMNI");
 
-        if (!avatar.isEmpty()) {
+        if (avatar != null && !avatar.isEmpty()) {
             try {
                 Map res = cloudinary.uploader().upload(avatar.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
                 u.setAvatar(res.get("secure_url").toString());

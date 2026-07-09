@@ -42,8 +42,10 @@ const Register = () => {
     const [loading, setLoading] = useState(false);
 
     const validate = () => {
-        if (user.confirm !== user.password)
+        if (user.confirm !== user.password) {
             setMsg("Mật khẩu không khớp!");
+            return false;
+        }
         return true;
     }
 
@@ -73,6 +75,7 @@ const Register = () => {
                     nav("/login");
             } catch (ex) {
                 console.error(ex);
+                setMsg(ex.response?.data?.message || "Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.");
             } finally {
                 setLoading(false);
             }
