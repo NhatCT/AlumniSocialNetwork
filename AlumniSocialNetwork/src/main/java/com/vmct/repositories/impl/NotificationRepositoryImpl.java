@@ -80,4 +80,17 @@ public class NotificationRepositoryImpl implements NotificationRepository {
             return false;
         }
     }
+
+    @Override
+    public List<Notification> getNotificationsForUser(Long userId) {
+        Session session = this.factory.getObject().getCurrentSession();
+        String hql = "SELECT DISTINCT nr.notificationId FROM NotificationRecipient nr " +
+                     "WHERE nr.isAll = true " +
+                     "   OR nr.userId.id = :userId " +
+                     "   OR nr.groupId.id IN (SELECT gm.groupId.id FROM GroupMember gm WHERE gm.userId.id = :userId) " +
+                     "ORDER BY nr.notificationId.createdAt DESC";
+        Query<Notification> query = session.createQuery(hql, Notification.class);
+        query.setParameter("userId", userId);
+        return query.getResultList();
+    }
 }

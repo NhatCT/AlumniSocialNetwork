@@ -7,6 +7,7 @@ export const endpoints = {
     posts: 'secure/post',
     postDetail: (id) => `secure/post/${id}`,
     lockComment: (id, lock) => `secure/post/${id}/lock-comments?lock=${lock}`,
+    notifications: 'secure/notification',
 
     comments: 'secure/comment',
     commentByPost: (postId) => `secure/comment/post/${postId}`,

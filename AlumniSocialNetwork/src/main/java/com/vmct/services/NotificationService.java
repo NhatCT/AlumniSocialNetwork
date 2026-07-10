@@ -11,4 +11,5 @@ public interface NotificationService {
     boolean delete(Long id);
     boolean sendNotificationToRecipients(Long notificationId);
     void prepareRecipients(Long notificationId, String recipientType,List<Long> groupIds, List<Long> userIds);
+    List<Notification> getNotificationsForUser(Long userId);
 }

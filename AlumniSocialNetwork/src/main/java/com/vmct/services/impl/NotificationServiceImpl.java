@@ -146,4 +146,9 @@ public boolean sendNotificationToRecipients(Long notificationId) {
     private boolean isValidEmail(String email) {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
+
+    @Override
+    public List<Notification> getNotificationsForUser(Long userId) {
+        return this.notificationRepository.getNotificationsForUser(userId);
+    }
 }

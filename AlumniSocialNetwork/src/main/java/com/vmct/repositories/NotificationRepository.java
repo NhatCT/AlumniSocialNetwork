@@ -9,4 +9,5 @@ public interface NotificationRepository {
     Notification getNotificationById(Long id);
     List<Notification> getAllNotifications(Map<String, String> params);
     boolean deleteNotification(Long id);
+    List<Notification> getNotificationsForUser(Long userId);
 }
