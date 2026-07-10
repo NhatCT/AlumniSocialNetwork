@@ -100,8 +100,12 @@ const PostItem = ({ post: initialPost }) => {
                     <div className="post-time">{formatTimeVi(post.createdAt)}</div>
                 </div>
                 {isOwner && (
-                    <button className="post-menu-btn" onClick={toggleLockComment} title={post.isCommentLocked ? "Mở khóa bình luận" : "Khóa bình luận"}>
-                        ⋯
+                    <button className="post-menu-btn" onClick={toggleLockComment} title={post.isCommentLocked ? "Mở khóa bình luận" : "Khóa bình luận"} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg style={{ width: '18px', height: '18px', fill: 'currentColor' }} viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="2"/>
+                            <circle cx="6" cy="12" r="2"/>
+                            <circle cx="18" cy="12" r="2"/>
+                        </svg>
                     </button>
                 )}
             </div>
@@ -119,8 +123,14 @@ const PostItem = ({ post: initialPost }) => {
             {/* Action Buttons */}
             <div className="reaction-buttons">
                 <OverlayTrigger trigger="click" placement="top" overlay={popover} rootClose>
-                    <button className={`reaction-button ${userReaction ? 'active' : ''}`}>
-                        <span className="emoji">{currentEmoji?.emoji || '👍'}</span>
+                    <button className={`reaction-button ${userReaction ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <span className="emoji" style={{ display: 'flex', alignItems: 'center' }}>
+                            {currentEmoji ? currentEmoji.emoji : (
+                                <svg style={{ width: '18px', height: '18px', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' }} viewBox="0 0 24 24">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                                </svg>
+                            )}
+                        </span>
                         <span>{currentEmoji?.label || 'Thích'}</span>
                     </button>
                 </OverlayTrigger>
@@ -129,13 +139,28 @@ const PostItem = ({ post: initialPost }) => {
                     className="reaction-button"
                     onClick={() => setShowComment(!showComment)}
                     disabled={post.isCommentLocked}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                    <span className="emoji">💬</span>
+                    <span className="emoji" style={{ display: 'flex', alignItems: 'center' }}>
+                        {post.isCommentLocked ? '🔒' : (
+                            <svg style={{ width: '18px', height: '18px', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' }} viewBox="0 0 24 24">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                            </svg>
+                        )}
+                    </span>
                     <span>Bình luận {post.isCommentLocked ? '🔒' : ''}</span>
                 </button>
 
-                <button className="reaction-button">
-                    <span className="emoji">↗️</span>
+                <button className="reaction-button" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <span className="emoji" style={{ display: 'flex', alignItems: 'center' }}>
+                        <svg style={{ width: '18px', height: '18px', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' }} viewBox="0 0 24 24">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                    </span>
                     <span>Chia sẻ</span>
                 </button>
             </div>
