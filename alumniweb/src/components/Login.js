@@ -85,7 +85,7 @@ const Login = () => {
 
                 {loading ? <MySpinner /> :
                     <Form.Group className="mb-3" style={{ direction: "rtl" }}>
-                        <Button style={{ backgroundColor: "#0e3a57", color: "white", border: "none", marginLeft: ".5rem" }} className="mt-2">Đăng kí</Button>
+                        <Button type="button" onClick={() => nav("/register")} style={{ backgroundColor: "#0e3a57", color: "white", border: "none", marginLeft: ".5rem" }} className="mt-2">Đăng kí</Button>
                         <Button type="submit" style={{ backgroundColor: "#0e3a57", color: "white", border: "none" }} className="mt-2">Đăng nhập</Button>
                     </Form.Group>}
             </Form>
