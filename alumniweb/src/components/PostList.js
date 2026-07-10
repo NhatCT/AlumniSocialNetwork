@@ -1,9 +1,7 @@
 import { useEffect, useState, useContext, useRef } from "react";
-import { Button, Form, Alert } from "react-bootstrap";
 import { authApis, endpoints } from "../configs/Apis";
 import PostItem from "./PostItem";
 import PostForm from "./PostForm";
-import MySpinner from "./layout/MySpinner";
 import { MyUserContext } from "../configs/Context";
 
 const PostList = () => {
@@ -14,6 +12,8 @@ const PostList = () => {
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const debounceTimer = useRef(null);
+    const observerRef = useRef(null);
+    const loadMoreRef = useRef(null);
 
     const loadPosts = async (search = q, pageNumber = page) => {
         try {
@@ -30,7 +30,7 @@ const PostList = () => {
                 setPosts(prev => [...prev, ...data]);
             }
 
-            setHasMore(data.length >= 6); // Giả định page size = 6
+            setHasMore(data.length >= 6);
         } catch (err) {
             console.error("Lỗi tải bài viết:", err);
         } finally {
@@ -38,7 +38,7 @@ const PostList = () => {
         }
     };
 
-    // Xử lý debounce tìm kiếm
+    // Debounce search
     useEffect(() => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
@@ -50,15 +50,44 @@ const PostList = () => {
         return () => clearTimeout(debounceTimer.current);
     }, [q]);
 
-    // Gọi loadPosts khi page tăng (sau lần đầu)
     useEffect(() => {
         if (page > 1) loadPosts(q, page);
     }, [page]);
 
-    const loadMore = () => {
-        if (!hasMore || loading) return;
-        setPage(prev => prev + 1);
-    };
+    // Infinite scroll with IntersectionObserver
+    useEffect(() => {
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore && !loading) {
+                setPage(prev => prev + 1);
+            }
+        }, { threshold: 0.1 });
+
+        if (loadMoreRef.current) {
+            observerRef.current.observe(loadMoreRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) observerRef.current.disconnect();
+        };
+    }, [hasMore, loading]);
+
+    // Skeleton loader
+    const SkeletonPost = () => (
+        <div className="post-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div className="skeleton skeleton-avatar" />
+                <div style={{ flex: 1 }}>
+                    <div className="skeleton skeleton-text short" />
+                    <div className="skeleton skeleton-text" style={{ width: '40%', height: '10px' }} />
+                </div>
+            </div>
+            <div className="skeleton skeleton-text long" />
+            <div className="skeleton skeleton-text medium" />
+            <div className="skeleton skeleton-text short" />
+        </div>
+    );
 
     return (
         <>
@@ -67,21 +96,31 @@ const PostList = () => {
                 loadPosts(q, 1);
             }} />
 
-            <Form>
-                <Form.Group className="mb-3 mt-2">
-                    <Form.Control
-                        value={q}
-                        onChange={e => setQ(e.target.value)}
-                        type="text"
-                        placeholder="Tìm kiếm bài viết..."
-                    />
-                </Form.Group>
-            </Form>
+            {/* Search */}
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+                <span style={{
+                    position: 'absolute', left: '16px', top: '50%',
+                    transform: 'translateY(-50%)', fontSize: '16px', color: 'var(--text-muted)'
+                }}>🔍</span>
+                <input
+                    className="search-input-feed"
+                    value={q}
+                    onChange={e => setQ(e.target.value)}
+                    type="text"
+                    placeholder="Tìm kiếm bài viết..."
+                />
+            </div>
 
+            {/* Empty State */}
             {(!posts || posts.length === 0) && !loading && (
-                <Alert variant="info">Không có bài viết nào!</Alert>
+                <div className="empty-state">
+                    <div className="empty-icon">📝</div>
+                    <h3>Chưa có bài viết nào</h3>
+                    <p>Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!</p>
+                </div>
             )}
 
+            {/* Posts */}
             {posts.map(p => (
                 <PostItem key={p.id} post={p} onPostUpdate={() => {
                     setPage(1);
@@ -89,11 +128,26 @@ const PostList = () => {
                 }} />
             ))}
 
-            {loading && <MySpinner />}
+            {/* Loading Skeletons */}
+            {loading && (
+                <>
+                    <SkeletonPost />
+                    <SkeletonPost />
+                </>
+            )}
 
-            {!loading && hasMore && posts.length > 0 && (
-                <div className="text-center mt-2 mb-2">
-                    <Button variant="primary" onClick={loadMore}>Xem thêm...</Button>
+            {/* Infinite Scroll Trigger */}
+            <div ref={loadMoreRef} style={{ height: '1px' }} />
+
+            {/* End of feed */}
+            {!loading && !hasMore && posts.length > 0 && (
+                <div style={{
+                    textAlign: 'center',
+                    padding: '24px',
+                    color: 'var(--text-muted)',
+                    fontSize: '14px'
+                }}>
+                    ✅ Bạn đã xem hết tất cả bài viết
                 </div>
             )}
         </>

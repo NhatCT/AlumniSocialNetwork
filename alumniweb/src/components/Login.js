@@ -1,25 +1,14 @@
 import { useContext, useState } from "react";
-import { Alert, Button, Form } from "react-bootstrap";
+import { Alert } from "react-bootstrap";
 import MySpinner from "./layout/MySpinner";
 import { useNavigate } from "react-router-dom";
 import Apis, { authApis, endpoints } from "../configs/Apis";
-import cookie from 'react-cookies'
+import cookie from 'react-cookies';
 import { MyUserContext } from "../configs/Context";
 
 const Login = () => {
     const [, dispatch] = useContext(MyUserContext);
-
-    const info = [{
-        "title": "Tên đăng nhập",
-        "field": "username",
-        "type": "text"
-    }, {
-        "title": "Mật khẩu",
-        "field": "password",
-        "type": "password"
-    }];
-
-    const [user, setUser] = useState({});
+    const [user, setUser] = useState({ username: '', password: '' });
     const [msg, setMsg] = useState();
     const nav = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -64,32 +53,95 @@ const Login = () => {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     return (
-        <div className="form-container">
-            <Form onSubmit={login} style={{
-                width: "71.5%", backgroundColor: "#add8e678", margin: "0 auto", padding: "2rem",
-                boxShadow: "5px 5px 5px #55555599", borderRadius: "1rem", fontWeight: "bold"
-            }}>
-                {msg && <Alert variant="danger">{msg}</Alert>}
+        <div className="auth-page">
+            {/* Hero Section */}
+            <div className="auth-hero">
+                <h1>
+                    Chào mừng đến<br />
+                    <span className="hero-highlight">Alumni Network</span>
+                </h1>
+                <p>
+                    Nền tảng kết nối cựu sinh viên hàng đầu. 
+                    Chia sẻ kinh nghiệm, xây dựng mối quan hệ và 
+                    cùng nhau phát triển sự nghiệp.
+                </p>
+                <div className="hero-features">
+                    <div className="hero-feature">
+                        <span className="feature-icon">🤝</span>
+                        <span>Kết nối với hàng nghìn cựu sinh viên</span>
+                    </div>
+                    <div className="hero-feature">
+                        <span className="feature-icon">💼</span>
+                        <span>Cơ hội nghề nghiệp và tuyển dụng</span>
+                    </div>
+                    <div className="hero-feature">
+                        <span className="feature-icon">📊</span>
+                        <span>Tham gia khảo sát và sự kiện</span>
+                    </div>
+                    <div className="hero-feature">
+                        <span className="feature-icon">💬</span>
+                        <span>Nhắn tin và thảo luận trực tuyến</span>
+                    </div>
+                </div>
+            </div>
 
-                <h1 className="text-center mb-3" style={{ color: "#0e3a57" }}>ĐĂNG NHẬP</h1>
+            {/* Login Form */}
+            <div className="auth-form-section">
+                <div className="auth-card">
+                    <h2>Đăng nhập</h2>
+                    <p className="auth-subtitle">Nhập thông tin tài khoản để tiếp tục</p>
 
-                {info.map(i =>
-                    <Form.Group key={i.field} className="mb-3" controlId={i.field}>
-                        <Form.Label>{i.title}</Form.Label>
-                        <Form.Control
-                            required value={user[i.field]} onChange={(e) => setUser({ ...user, [i.field]: e.target.value })} type={i.type} placeholder={`Nhập ${i.title.toLowerCase()}`} />
-                    </Form.Group>)}
+                    {msg && <Alert variant="danger">{msg}</Alert>}
 
-                {loading ? <MySpinner /> :
-                    <Form.Group className="mb-3" style={{ direction: "rtl" }}>
-                        <Button type="button" onClick={() => nav("/register")} style={{ backgroundColor: "#0e3a57", color: "white", border: "none", marginLeft: ".5rem" }} className="mt-2">Đăng kí</Button>
-                        <Button type="submit" style={{ backgroundColor: "#0e3a57", color: "white", border: "none" }} className="mt-2">Đăng nhập</Button>
-                    </Form.Group>}
-            </Form>
+                    <form onSubmit={login}>
+                        <div className="auth-form-group">
+                            <label>Tên đăng nhập</label>
+                            <div className="auth-input-wrapper">
+                                <span className="input-icon">👤</span>
+                                <input
+                                    type="text"
+                                    placeholder="Nhập tên đăng nhập"
+                                    required
+                                    value={user.username}
+                                    onChange={(e) => setUser({ ...user, username: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="auth-form-group">
+                            <label>Mật khẩu</label>
+                            <div className="auth-input-wrapper">
+                                <span className="input-icon">🔒</span>
+                                <input
+                                    type="password"
+                                    placeholder="Nhập mật khẩu"
+                                    required
+                                    value={user.password}
+                                    onChange={(e) => setUser({ ...user, password: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        {loading ? <MySpinner /> : (
+                            <button type="submit" className="auth-btn">
+                                Đăng nhập
+                            </button>
+                        )}
+                    </form>
+
+                    <div className="auth-link">
+                        Chưa có tài khoản?{' '}
+                        <button type="button" onClick={() => nav("/register")}>
+                            Đăng ký ngay
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
+
 export default Login;
