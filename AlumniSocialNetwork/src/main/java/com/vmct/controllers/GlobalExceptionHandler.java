@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+
 @RestControllerAdvice
+@CrossOrigin
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
