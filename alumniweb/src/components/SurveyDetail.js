@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { authApis, endpoints } from "../configs/Apis";
 import MySpinner from "./layout/MySpinner";
 import cookie from "react-cookies";
-import { Card, Button, Form, Alert } from "react-bootstrap";
-import { formatTimeVi } from "../formatters/TimeFormatter"; // giống PostItem
+import { Alert } from "react-bootstrap";
+import { formatTimeVi } from "../formatters/TimeFormatter";
 
 const SurveyDetail = () => {
     const { id } = useParams();
@@ -68,52 +68,88 @@ const SurveyDetail = () => {
     if (!survey) return <p>Không tìm thấy khảo sát.</p>;
 
     return (
-        <Card className="my-3 shadow-sm">
-            <Card.Body>
-                <Card.Title className="h4">{survey.title}</Card.Title>
-                <Card.Text className="text-muted">{survey.description}</Card.Text>
-                <small className="text-secondary">
-                    Ngày tạo: {survey.createdAt ? formatTimeVi(survey.createdAt) : "Không xác định"}
-                </small>
+        <div className="survey-card" style={{ maxWidth: '680px', margin: '0 auto', cursor: 'default' }}>
+            <span className="survey-badge active" style={{ marginBottom: '16px' }}>
+                🟢 Đang khảo sát
+            </span>
 
-                <div className="mt-4">
-                    <h5 className="mb-3">Các lựa chọn:</h5>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 12px' }}>{survey.title}</h2>
+            
+            {survey.description && (
+                <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: '1.7', margin: '0 0 16px' }}>
+                    {survey.description}
+                </p>
+            )}
 
-                    <Form>
-                        {survey.options?.map(option => (
-                            <Form.Check
-                                type="radio"
-                                id={`option-${option.id}`}
-                                name="survey-options"
-                                key={option.id}
-                                label={
-                                    <>
-                                        {option.optionText}
-                                        <span className="text-muted ms-2">(Số vote: {option.voteCount})</span>
-                                    </>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', borderBottom: '1px solid var(--border-light)', paddingBottom: '16px' }}>
+                🕒 Ngày tạo: {survey.createdAt ? formatTimeVi(survey.createdAt) : "Không xác định"}
+            </div>
+
+            <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px' }}>Hãy đưa ra lựa chọn của bạn:</h3>
+
+                <form onSubmit={(e) => { e.preventDefault(); handleVote(); }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {survey.options?.map(option => (
+                        <label
+                            key={option.id}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '14px 18px',
+                                border: selectedOption === option.id ? '2px solid var(--primary)' : '2px solid var(--border-color)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: voted ? 'default' : 'pointer',
+                                transition: 'all 0.2s',
+                                background: selectedOption === option.id ? 'rgba(79, 70, 229, 0.04)' : 'var(--bg-card)'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!voted && selectedOption !== option.id) {
+                                    e.currentTarget.style.borderColor = 'var(--primary-light)';
                                 }
-                                value={option.id}
+                            }}
+                            onMouseLeave={(e) => {
+                                if (selectedOption !== option.id) {
+                                    e.currentTarget.style.borderColor = 'var(--border-color)';
+                                }
+                            }}
+                        >
+                            <input
+                                type="radio"
+                                name="survey-options"
+                                checked={selectedOption === option.id}
                                 onChange={() => setSelectedOption(option.id)}
                                 disabled={voted}
-                                className="mb-2"
+                                style={{ width: '18px', height: '18px', cursor: voted ? 'default' : 'pointer' }}
                             />
-                        ))}
-                    </Form>
+                            <div style={{ flex: 1, fontSize: '15px', fontWeight: 500 }}>
+                                {option.optionText}
+                            </div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                ({option.voteCount} vote)
+                            </div>
+                        </label>
+                    ))}
 
-                    {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+                    {error && <Alert variant="danger" style={{ marginTop: '16px' }}>{error}</Alert>}
 
                     {!voted ? (
-                        <Button className="mt-3" variant="primary" onClick={handleVote}>
-                            Gửi vote
-                        </Button>
+                        <button
+                            type="submit"
+                            className="btn-primary-gradient"
+                            style={{ marginTop: '24px', width: '100%', padding: '14px' }}
+                            disabled={!selectedOption}
+                        >
+                            Gửi ý kiến bầu chọn
+                        </button>
                     ) : (
-                        <Alert variant="success" className="mt-3">
-                            ✅ Cảm ơn bạn đã vote!
+                        <Alert variant="success" style={{ marginTop: '24px', textAlign: 'center', fontWeight: 600 }}>
+                            ✅ Cảm ơn bạn đã tham gia bầu chọn! Ý kiến của bạn đã được ghi nhận.
                         </Alert>
                     )}
-                </div>
-            </Card.Body>
-        </Card>
+                </form>
+            </div>
+        </div>
     );
 };
 

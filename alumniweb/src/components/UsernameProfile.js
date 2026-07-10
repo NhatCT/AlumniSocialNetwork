@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { Button, Card } from "react-bootstrap";
 import cookie from 'react-cookies';
 import { authApis, endpoints } from "../configs/Apis";
 import MySpinner from "./layout/MySpinner";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { formatTimeVi } from "../formatters/TimeFormatter";
 import ChatBox from "../components/ChatBox";
 
@@ -15,15 +14,16 @@ const UsernameProfile = () => {
     const [profileUser, setProfileUser] = useState(null);
     const [posts, setPosts] = useState([]);
     const [showChat, setShowChat] = useState(false);
+    const [activeTab, setActiveTab] = useState('posts');
     const nav = useNavigate();
 
     const currentUser = cookie.load('user');
 
     useEffect(() => {
-        if (username === currentUser.username) {
+        if (currentUser && username === currentUser.username) {
             nav("/profile");
         }
-    }, []);
+    }, [username, currentUser]);
 
     const loadProfileUser = async () => {
         try {
@@ -56,89 +56,124 @@ const UsernameProfile = () => {
         }
     }, [profileUser]);
 
+    const getRoleLabel = (role) => {
+        switch (role) {
+            case 'ROLE_ADMIN': return 'Quản trị viên';
+            case 'ROLE_ALUMNI': return 'Cựu sinh viên';
+            case 'ROLE_LECTURER': return 'Giảng viên';
+            default: return role;
+        }
+    };
+
     if (loading || !profileUser) return <MySpinner />;
 
     return (
-        <div style={{
-            backgroundColor: "#f0f4fb", color: "#0a1c3f", fontFamily: "Arial, sans-serif", minHeight: "100vh",
-            border: "1px solid #d0d7e2", borderRadius: "12px", overflow: "hidden"
-        }}>
-
-            <div style={{ height: "300px", position: "relative", backgroundColor: profileUser.cover ? "transparent" : "#cfe2f3" }}>
-                {profileUser.cover && <img src={profileUser.cover} alt="Ảnh bìa" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+        <div className="profile-page">
+            {/* Cover Photo */}
+            <div className="profile-cover">
+                {profileUser.cover && <img src={profileUser.cover} alt="Cover" />}
+                <div className="cover-overlay" />
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", padding: "0 20px", marginTop: "-60px" }}>
-                <div style={{ position: "relative", width: "10rem", height: "10rem" }}>
-                    <img src={profileUser.avatar || defaultAvatar} alt="Avatar"
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", border: "5px solid white", objectFit: "cover" }} />
+            {/* Profile Info */}
+            <div className="profile-info-section">
+                <div className="profile-avatar-wrapper">
+                    <img src={profileUser.avatar || defaultAvatar} alt="Avatar" />
                 </div>
 
-                <div style={{ marginLeft: "20px", flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <h2 style={{ marginTop: "70px", fontSize: "24px", color: "#000000" }}>
-                            {profileUser.lastName} {profileUser.firstName}
-                        </h2>
-
-                        {profileUser.id !== currentUser?.id && (
-                            <Button variant="primary" style={{ marginTop: "70px" }}
-                                onClick={() => setShowChat(!showChat)}>💬 Nhắn tin
-                            </Button>
-                        )}
+                <div className="profile-name-section" style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap' }}>
+                    <div>
+                        <h1>{profileUser.lastName} {profileUser.firstName}</h1>
+                        <div className="profile-role">{getRoleLabel(profileUser.userRole)}</div>
                     </div>
 
-                    <p style={{ color: "#000000" }}>
-                        {profileUser.userRole === 'ROLE_ALUMNI' ? 'Cựu sinh viên' :
-                            profileUser.userRole === 'ROLE_LECTURER' ? 'Giảng viên' :
-                                profileUser.userRole}
-                    </p>
-
-                    {showChat && (
-                        <div style={{ marginTop: "20px" }}>
-                            <ChatBox receiverId={profileUser.id} />
-                        </div>
+                    {profileUser.id !== currentUser?.id && (
+                        <button
+                            className="btn-primary-gradient"
+                            onClick={() => setShowChat(!showChat)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            💬 {showChat ? "Đóng chat" : "Nhắn tin"}
+                        </button>
                     )}
                 </div>
             </div>
 
-            <div style={{ display: "flex", padding: "20px", gap: "30px" }}>
-                <div style={{ flex: "1", backgroundColor: "#ffffff", padding: "30px", borderRadius: "12px", border: "1px solid #d0d7e2" }}>
-                    <h4 style={{ color: "#000000" }}>Thông tin tài khoản</h4>
-                    <p>Họ và tên đệm: <strong>{profileUser.lastName}</strong></p>
-                    <p>Tên: <strong>{profileUser.firstName}</strong></p>
-                    <p>Mã số sinh viên: <strong>{profileUser.studentId || "Không có mã số sinh viên"}</strong></p>
-                    <p>Email: <strong>{profileUser.email}</strong></p>
+            {/* Embedded Chat Box */}
+            {showChat && (
+                <div style={{ margin: '24px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                    <ChatBox currentUserId={currentUser?.id?.toString()} receiverId={profileUser.id} />
+                </div>
+            )}
+
+            {/* Tabs */}
+            <div className="profile-tabs">
+                <button className={`profile-tab ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')}>
+                    Bài viết
+                </button>
+                <button className={`profile-tab ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>
+                    Thông tin
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="profile-content">
+                {/* Info Card */}
+                <div>
+                    <div className="profile-info-card">
+                        <h3>Thông tin cá nhân</h3>
+                        <div className="profile-info-item">
+                            <span className="info-icon">👤</span>
+                            <span>Họ tên: <strong>{profileUser.lastName} {profileUser.firstName}</strong></span>
+                        </div>
+                        <div className="profile-info-item">
+                            <span className="info-icon">🎓</span>
+                            <span>MSSV: <strong>{profileUser.studentId || "Chưa cập nhật"}</strong></span>
+                        </div>
+                        <div className="profile-info-item">
+                            <span className="info-icon">📧</span>
+                            <span>Email: <strong>{profileUser.email}</strong></span>
+                        </div>
+                        <div className="profile-info-item">
+                            <span className="info-icon">🏷️</span>
+                            <span>Vai trò: <strong>{getRoleLabel(profileUser.userRole)}</strong></span>
+                        </div>
+                    </div>
                 </div>
 
-                <div style={{ flex: "2", display: "flex", flexDirection: "column", gap: "20px" }}>
+                {/* Posts */}
+                <div>
                     {posts.length > 0 ? posts.map(post => (
-                        <Card key={post.id} style={{ backgroundColor: "#ffffff", border: "1px solid #d0d7e2", borderRadius: "12px" }}>
-                            <Card.Body>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <div style={{ fontSize: "14px", color: "#6c757d", marginBottom: "8px" }}>
+                        <div key={post.id} className="post-card" style={{ marginBottom: '16px' }}>
+                            <div style={{ padding: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                                         🕒 {formatTimeVi(post.createdAt)}
-                                    </div>
-                                    <div style={{ display: "flex", gap: "8px" }}>
-                                        <Button variant="outline-dark" size="sm">Xem chi tiết</Button>
-                                    </div>
+                                    </span>
+                                    <Link to={`/posts/${post.id}`} className="btn-primary-gradient" style={{ padding: '6px 16px', fontSize: '12px', textDecoration: 'none' }}>
+                                        Xem chi tiết
+                                    </Link>
                                 </div>
 
-                                <Card.Text className="mt-2">{post.content}</Card.Text>
+                                <p style={{ fontSize: '15px', lineHeight: '1.7', margin: '0 0 12px' }}>
+                                    {post.content}
+                                </p>
 
-                                <div style={{
-                                    display: "flex", alignItems: "center", gap: "20px",
-                                    marginTop: "12px", fontSize: "14px", color: "#495057"
-                                }}>
+                                <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
                                     <span>👍 {post.reactionStats?.LIKE || 0}</span>
                                     <span>😂 {post.reactionStats?.HAHA || 0}</span>
                                     <span>❤️ {post.reactionStats?.HEART || 0}</span>
-                                    <span>💬 {post.commentCount || 0} bình luận{" - "}
-                                        {post.isCommentLocked ? "Bài viết bị khóa bình luận" : "Bình luận mở"}
-                                    </span>
+                                    <span>💬 {post.commentCount || 0} bình luận</span>
                                 </div>
-                            </Card.Body>
-                        </Card>
-                    )) : <p style={{ color: "#6c757d" }}>Chưa có bài viết nào.</p>}
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="empty-state">
+                            <div className="empty-icon">📝</div>
+                            <h3>Chưa có bài viết nào</h3>
+                            <p>Cựu sinh viên này chưa chia sẻ bài viết nào.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

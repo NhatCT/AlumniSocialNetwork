@@ -1,49 +1,49 @@
 import React, { useState } from 'react';
-import { Card, Button, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import SurveyResult from './SurveyResult';
-import { formatTimeVi } from '../formatters/TimeFormatter'; 
+import { formatTimeVi } from '../formatters/TimeFormatter';
 
 const SurveyItem = ({ survey }) => {
     const [showResult, setShowResult] = useState(false);
 
     return (
-        <Card className="my-3 shadow-sm">
-            <Card.Body>
-                <Row className="align-items-start">
-                    <Col>
-                        <h5>
-                            <Link to={`/surveys/${survey.id}`} className="text-decoration-none text-primary">
-                                {survey.title}
-                            </Link>
-                        </h5>
+        <div className="survey-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '12px' }}>
+                <span className="survey-badge active">
+                    🟢 Đang diễn ra
+                </span>
+                <button
+                    className="btn-ghost"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowResult(!showResult);
+                    }}
+                    style={{ fontSize: '13px', padding: '6px 12px', borderRadius: 'var(--radius-md)' }}
+                >
+                    {showResult ? "Ẩn kết quả" : "Xem kết quả 📊"}
+                </button>
+            </div>
 
-                        {survey.description && (
-                            <p className="text-muted">{survey.description}</p>
-                        )}
+            <h3 style={{ margin: '0 0 8px' }}>
+                <Link to={`/surveys/${survey.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    {survey.title}
+                </Link>
+            </h3>
 
-                        <p className="text-secondary" style={{ fontSize: "0.875rem" }}>
-                            Tạo lúc: {survey.createdAt ? formatTimeVi(survey.createdAt) : "Không xác định"}
-                        </p>
-                    </Col>
+            {survey.description && (
+                <p className="survey-desc">{survey.description}</p>
+            )}
 
-                    <Col xs="auto">
-                        <Button
-                            variant={showResult ? "secondary" : "success"}
-                            onClick={() => setShowResult(!showResult)}
-                        >
-                            {showResult ? "Ẩn kết quả" : "Xem kết quả"}
-                        </Button>
-                    </Col>
-                </Row>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
+                🕒 Tạo lúc: {survey.createdAt ? formatTimeVi(survey.createdAt) : "Không xác định"}
+            </div>
 
-                {showResult && (
-                    <div className="mt-3 pt-3 border-top">
-                        <SurveyResult surveyId={survey.id} />
-                    </div>
-                )}
-            </Card.Body>
-        </Card>
+            {showResult && (
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-light)' }}>
+                    <SurveyResult surveyId={survey.id} />
+                </div>
+            )}
+        </div>
     );
 };
 

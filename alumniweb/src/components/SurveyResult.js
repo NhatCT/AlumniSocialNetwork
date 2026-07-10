@@ -17,30 +17,38 @@ const SurveyResult = ({ surveyId }) => {
         load();
     }, [surveyId]);
 
-    if (!stats) return <p>Đang tải kết quả...</p>;
+    if (!stats) return <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Đang tải kết quả...</p>;
 
     const total = stats.total || 1;
     const keys = Object.keys(stats).filter(k => k !== 'total');
 
     return (
-        <div className="p-4 bg-gray-50 rounded">
-            <h2 className="text-lg font-semibold mb-3">Kết quả khảo sát</h2>
-            <ul className="space-y-3">
-                {keys.map(key => (
-                    <li key={key} className="border p-3 rounded">
-                        <div className="flex justify-between mb-1">
-                            <span>{key}</span>
-                            <span>{stats[key]}  lượt</span>
+        <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px' }}>Kết quả khảo sát</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {keys.map(key => {
+                    const count = stats[key] || 0;
+                    const percentage = Math.round((count / total) * 100);
+
+                    return (
+                        <div key={key}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+                                <span style={{ fontWeight: 500 }}>{key}</span>
+                                <span style={{ color: 'var(--text-muted)' }}>{count} lượt ({percentage}%)</span>
+                            </div>
+                            <div className="survey-progress-bar">
+                                <div
+                                    className="fill"
+                                    style={{ width: `${percentage}%` }}
+                                />
+                            </div>
                         </div>
-                        <div className="h-2 bg-gray-200 rounded">
-                            <div
-                                className="h-2 bg-blue-600 rounded"
-                                style={{ width: `${(stats[key] / total) * 100}%` }}
-                            />
-                        </div>
-                    </li>
-                ))}
-            </ul>
+                    );
+                })}
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px', textAlign: 'right' }}>
+                Tổng cộng: <strong>{total}</strong> lượt vote
+            </div>
         </div>
     );
 };

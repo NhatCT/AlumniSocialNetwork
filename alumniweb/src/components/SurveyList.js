@@ -1,27 +1,26 @@
-import { useEffect, useState, useContext, useRef } from "react";
-import { Button, Form, Alert } from "react-bootstrap";
+import { useEffect, useState, useRef } from "react";
 import { authApis, endpoints } from "../configs/Apis";
 import SurveyItem from "./SurveyItem";
-import MySpinner from "./layout/MySpinner";
-import { MyUserContext } from "../configs/Context";
 import cookie from 'react-cookies';
 import { useNavigate } from "react-router-dom";
 
 const SurveyList = () => {
     const [surveys, setSurveys] = useState([]);
-    const [user] = useContext(MyUserContext);
     const [page, setPage] = useState(1);
     const [q, setQ] = useState("");
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const debounceTimer = useRef(null);
+    const observerRef = useRef(null);
+    const loadMoreRef = useRef(null);
     const navigate = useNavigate();
 
     const loadSurveys = async (search = q, pageNumber = page) => {
         let url = `${endpoints.surveys}?page=${pageNumber}`;
-        if (search) url += `&kw=${search}`;
+        if (search.trim()) url += `&kw=${encodeURIComponent(search.trim())}`;
 
-        setLoading(true);
+        try {
+            setLoading(true);
             const res = await authApis().get(url);
             const data = res.data;
 
@@ -36,25 +35,29 @@ const SurveyList = () => {
                 if (pageNumber === 1) setSurveys([]);
                 setHasMore(false);
             } else {
-                if (pageNumber === 1)
+                if (pageNumber === 1) {
                     setSurveys(data);
-                else
+                } else {
                     setSurveys(prev => [...prev, ...data]);
-
-                setHasMore(data.length >= 6);
+                }
+                setHasMore(data.length >= 6); // Giả định page size = 6
             }
+        } catch (err) {
+            console.error("Lỗi khi tải danh sách khảo sát:", err);
             setSurveys([]);
             setHasMore(false);
-        
+        } finally {
             setLoading(false);
-        
+        }
     };
+
+    // Debounce search
     useEffect(() => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
         debounceTimer.current = setTimeout(() => {
-            setPage(1);           
-            loadSurveys(q, 1);    
+            setPage(1);
+            loadSurveys(q, 1);
         }, 500);
 
         return () => clearTimeout(debounceTimer.current);
@@ -66,46 +69,84 @@ const SurveyList = () => {
 
     useEffect(() => {
         const token = cookie.load("token");
-        if (!token) navigate("/login");
-        else loadSurveys(q, 1); // tải ban đầu
+        if (!token) {
+            navigate("/login");
+        } else {
+            loadSurveys(q, 1);
+        }
     }, []);
 
-    const loadMore = () => {
-        if (!hasMore || loading) return;
-        setPage(prev => prev + 1);
-    };
+    // Infinite scroll observer
+    useEffect(() => {
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore && !loading) {
+                setPage(prev => prev + 1);
+            }
+        }, { threshold: 0.1 });
+
+        if (loadMoreRef.current) {
+            observerRef.current.observe(loadMoreRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) observerRef.current.disconnect();
+        };
+    }, [hasMore, loading]);
+
+    // Skeleton loader
+    const SkeletonSurvey = () => (
+        <div className="survey-card" style={{ padding: '20px' }}>
+            <div className="skeleton skeleton-text short" style={{ marginBottom: '16px', height: '24px', width: '30%' }} />
+            <div className="skeleton skeleton-text long" style={{ height: '20px' }} />
+            <div className="skeleton skeleton-text medium" style={{ height: '14px', width: '50%' }} />
+        </div>
+    );
 
     return (
         <>
-            <Form>
-                <Form.Group className="mb-3 mt-2">
-                    <Form.Control
-                        value={q}
-                        onChange={e => setQ(e.target.value)}
-                        type="text"
-                        placeholder="Tìm kiếm khảo sát..."
-                    />
-                </Form.Group>
-            </Form>
+            {/* Search */}
+            <div style={{ position: 'relative', marginBottom: '24px' }}>
+                <span style={{
+                    position: 'absolute', left: '16px', top: '50%',
+                    transform: 'translateY(-50%)', fontSize: '16px', color: 'var(--text-muted)'
+                }}>🔍</span>
+                <input
+                    className="search-input-feed"
+                    value={q}
+                    onChange={e => setQ(e.target.value)}
+                    type="text"
+                    placeholder="Tìm kiếm cuộc khảo sát ý kiến..."
+                />
+            </div>
 
+            {/* Empty State */}
             {surveys.length === 0 && !loading && (
-                <Alert variant="info">Không có khảo sát nào để hiển thị.</Alert>
-            )}
-
-            {surveys.map(s => (
-                <SurveyItem key={s.id} survey={s} onSurveyUpdate={() => {
-                    setPage(1);
-                    loadSurveys(q, 1);
-                }} />
-            ))}
-
-            {loading && <MySpinner />}
-
-            {!loading && hasMore && surveys.length > 0 && (
-                <div className="text-center mt-2 mb-2">
-                    <Button variant="primary" onClick={loadMore}>Xem thêm...</Button>
+                <div className="empty-state">
+                    <div className="empty-icon">📊</div>
+                    <h3>Không tìm thấy khảo sát</h3>
+                    <p>Hiện tại không có cuộc khảo sát nào khớp với tìm kiếm của bạn.</p>
                 </div>
             )}
+
+            {/* Grid of Surveys */}
+            <div className="survey-grid">
+                {surveys.map(s => (
+                    <SurveyItem key={s.id} survey={s} />
+                ))}
+            </div>
+
+            {/* Loading Skeletons */}
+            {loading && (
+                <div className="survey-grid" style={{ marginTop: '16px' }}>
+                    <SkeletonSurvey />
+                    <SkeletonSurvey />
+                </div>
+            )}
+
+            {/* Infinite Scroll Trigger */}
+            <div ref={loadMoreRef} style={{ height: '1px' }} />
         </>
     );
 };

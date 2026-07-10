@@ -2,7 +2,6 @@ import { useContext } from "react";
 import PostList from "./PostList";
 import { MyUserContext } from "../configs/Context";
 import { Link } from "react-router-dom";
-import cookie from "react-cookies";
 
 const Home = () => {
     const [user] = useContext(MyUserContext);

@@ -1,12 +1,10 @@
-import { useEffect, useState, useContext, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { authApis, endpoints } from "../configs/Apis";
 import PostItem from "./PostItem";
 import PostForm from "./PostForm";
-import { MyUserContext } from "../configs/Context";
 
 const PostList = () => {
     const [posts, setPosts] = useState([]);
-    const [user] = useContext(MyUserContext);
     const [page, setPage] = useState(1);
     const [q, setQ] = useState("");
     const [loading, setLoading] = useState(false);
