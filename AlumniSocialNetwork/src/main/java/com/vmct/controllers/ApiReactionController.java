@@ -73,7 +73,7 @@ public class ApiReactionController {
         if (reaction != null) {
             return ResponseEntity.ok(new ReactionDTO(reaction));
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 
 }
